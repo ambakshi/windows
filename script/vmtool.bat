@@ -41,7 +41,7 @@ if exist "%SystemRoot%\_download.cmd" (
   call "%SystemRoot%\_download.cmd" "%SEVENZIP_URL%" "%SEVENZIP_PATH%"
 ) else (
   echo ==^> Downloading "%SEVENZIP_URL%" to "%SEVENZIP_PATH%"
-  powershell -Command "(New-Object System.Net.WebClient).DownloadFile('%SEVENZIP_URL%', '%SEVENZIP_PATH%')" <NUL
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object System.Net.WebClient).DownloadFile('%SEVENZIP_URL%', '%SEVENZIP_PATH%')" <NUL
 )
 if not exist "%SEVENZIP_PATH%" goto return1
 echo ==^> Installing "%SEVENZIP_PATH%"
@@ -116,7 +116,7 @@ if exist "%SystemRoot%\_download.cmd" (
   call "%SystemRoot%\_download.cmd" "%VMWARE_TOOLS_TAR_URL%" "%VMWARE_TOOLS_TAR_PATH%"
 ) else (
   echo ==^> Downloading "%VMWARE_TOOLS_TAR_URL%" to "%VMWARE_TOOLS_TAR_PATH%"
-  powershell -Command "(New-Object System.Net.WebClient).DownloadFile('%VMWARE_TOOLS_TAR_URL%', '%VMWARE_TOOLS_TAR_PATH%')" <NUL
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object System.Net.WebClient).DownloadFile('%VMWARE_TOOLS_TAR_URL%', '%VMWARE_TOOLS_TAR_PATH%')" <NUL
 )
 if not exist "%VMWARE_TOOLS_TAR_PATH%" goto exit1
 call :install_sevenzip
@@ -152,7 +152,7 @@ if not exist "%VMWARE_TOOLS_SETUP_PATH%" echo ==^> Unable to unzip "%VMWARE_TOOL
 
 :install_vmware_tools
 echo ==^> Installing VMware tools
-"%VMWARE_TOOLS_SETUP_PATH%" /S /v "/qn REBOOT=R ADDLOCAL=ALL"
+start "install" /wait "%VMWARE_TOOLS_SETUP_PATH%" /S /v "/qn REBOOT=R ADDLOCAL=ALL"
 @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: "%VMWARE_TOOLS_SETUP_PATH%" /S /v "/qn REBOOT=R ADDLOCAL=ALL"
 ver>nul
 goto exit0
@@ -181,7 +181,7 @@ if exist "%SystemRoot%\_download.cmd" (
   call "%SystemRoot%\_download.cmd" "%VBOX_ISO_URL%" "%VBOX_ISO_PATH%"
 ) else (
   echo ==^> Downloading "%VBOX_ISO_URL%" to "%VBOX_ISO_PATH%"
-  powershell -Command "(New-Object System.Net.WebClient).DownloadFile('%VBOX_ISO_URL%', '%VBOX_ISO_PATH%')" <NUL
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object System.Net.WebClient).DownloadFile('%VBOX_ISO_URL%', '%VBOX_ISO_PATH%')" <NUL
 )
 if not exist "%VBOX_ISO_PATH%" goto exit1
 
@@ -200,7 +200,7 @@ if not exist a:\oracle-cert.cer echo ==^> ERROR: File not found: a:\oracle-cert.
 echo ==^> Installing Oracle certificate to keep install silent
 certutil -addstore -f "TrustedPublisher" a:\oracle-cert.cer
 echo ==^> Installing VirtualBox Guest Additions
-"%VBOX_SETUP_PATH%" /S
+start "install" /wait "%VBOX_SETUP_PATH%" /S
 @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: "%VBOX_SETUP_PATH%" /S
 ver>nul
 goto :exit0
@@ -226,7 +226,7 @@ echo ==^>   to %PARALLELS_DIR%\*
 ping 127.0.0.1
 echo ==^> Installing Parallels Tools
 echo ==^>   from %PARALLELS_PATH%
-"%PARALLELS_PATH%" /install_silent
+start "install" /wait "%PARALLELS_PATH%" /install_silent
 REM parallels tools installer tends to exit while the install agent
 REM is still running, need to sleep while it's running so we don't
 REM delete the tools.

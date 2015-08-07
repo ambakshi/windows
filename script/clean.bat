@@ -2,6 +2,8 @@
 @for %%i in (a:\_packer_config*.cmd) do @call "%%~i"
 @if defined PACKER_DEBUG (@echo on) else (@echo off)
 
+goto exit0
+
 pushd "%TEMP%"
 
 echo ==^> Cleaning "%TEMP%" directories >&2

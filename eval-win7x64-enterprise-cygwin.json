@@ -31,10 +31,13 @@
       "type": "vmware-iso",
       "vm_name": "eval-win7x64-enterprise-cygwin",
       "vmx_data": {
-        "cpuid.coresPerSocket": "1",
+        "cpuid.coresPerSocket": "2",
         "memsize": "2048",
         "numvcpus": "1"
-      }
+      },
+      "communicator":"winrm",
+      "winrm_password": "vagrant",
+      "winrm_username": "vagrant"      
     },
     {
       "disk_size": "{{user `disk_size`}}",
@@ -144,8 +147,6 @@
         "CM_VERSION={{user `cm_version`}}",
         "UPDATE={{user `update`}}"
       ],
-      "execute_command": "{{.Vars}} cmd /c C:/Windows/Temp/script.bat",
-      "remote_path": "/tmp/script.bat",
       "scripts": [
         "script/vagrant.bat",
         "script/cmtool.bat",
@@ -155,13 +156,8 @@
         "script/uninstall-7zip.bat",
         "script/sdelete.bat"
       ],
-      "type": "shell"
-    },
-    {
-      "inline": [
-        "rm -f /tmp/script.bat"
-      ],
-      "type": "shell"
+      "start_retry_timeout": "5m",
+      "type": "windows-shell"
     }
   ],
   "variables": {
@@ -171,7 +167,7 @@
     "headless": "false",
     "iso_checksum": "15ddabafa72071a06d5213b486a02d5b55cb7070",
     "iso_url": "http://care.dlservice.microsoft.com/dl/download/evalx/win7/x64/EN/7600.16385.090713-1255_x64fre_enterprise_en-us_EVAL_Eval_Enterprise-GRMCENXEVAL_EN_DVD.iso",
-    "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c 'Packer Shutdown'",
+    "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c PackerShutdown",
     "update": "true",
     "version": "0.1.0"
   }
