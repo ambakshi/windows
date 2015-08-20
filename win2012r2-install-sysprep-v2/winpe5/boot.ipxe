@@ -1,0 +1,14 @@
+#!ipxe
+
+cpuid --ext 29 && set arch amd64 || set arch x86
+kernel wimboot
+initrd bootmgr.exe                      bootmgr.exe
+initrd ${arch}/boot/bcd                 BCD
+initrd ${arch}/boot/fonts/wgl4_boot.ttf wgl4_boot.ttf
+initrd ${arch}/boot/fonts/chs_boot.ttf  chs_boot.ttf
+initrd ${arch}/boot/fonts/cht_boot.ttf  cht_boot.ttf
+initrd ${arch}/boot/fonts/jpn_boot.ttf  jpn_boot.ttf
+initrd ${arch}/boot/fonts/kor_boot.ttf  kor_boot.ttf
+initrd ${arch}/boot/boot.sdi            boot.sdi
+initrd ${arch}/sources/boot.wim         boot.wim
+boot

@@ -41,7 +41,7 @@ if exist "%SystemRoot%\_download.cmd" (
 if not exist "%CHEF_PATH%" goto exit1
 
 echo ==^> Installing Chef client %CM_VERSION%
-msiexec /qb /i "%CHEF_PATH%" /l*v "%CHEF_DIR%\chef.log" %CHEF_OPTIONS%
+start "install" /w msiexec /qb /i "%CHEF_PATH%" /l*v "%CHEF_DIR%\chef.log" %CHEF_OPTIONS%
 
 @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: msiexec /qb /i "%CHEF_PATH%" /l*v "%CHEF_DIR%\chef.log" %CHEF_OPTIONS%
 ver>nul
@@ -73,7 +73,7 @@ if exist "%SystemRoot%\_download.cmd" (
 if not exist "%CHEFDK_PATH%" goto exit1
 
 echo ==^> Installing Chef Development Kit %CM_VERSION%
-msiexec /qb /i "%CHEFDK_PATH%" /l*v "%CHEFDK_DIR%\chef.log" %CHEFDK_OPTIONS%
+start "install" /w msiexec /qb /i "%CHEFDK_PATH%" /l*v "%CHEFDK_DIR%\chef.log" %CHEFDK_OPTIONS%
 
 @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: msiexec /qb /i "%CHEFDK_PATH%" /l*v "%CHEFDK_DIR%\chef.log" %CHEFDK_OPTIONS%
 ver>nul
@@ -107,7 +107,7 @@ if not exist "%PUPPET_PATH%" goto exit1
 
 echo ==^> Installing Puppet client %CM_VERSION%
 :: see http://docs.puppetlabs.com/pe/latest/install_windows.html
-msiexec /qb /i "%PUPPET_PATH%" /l*v "%PUPPET_DIR%\puppet.log" %PUPPET_OPTIONS%
+start "install" /w msiexec /qb /i "%PUPPET_PATH%" /l*v "%PUPPET_DIR%\puppet.log" %PUPPET_OPTIONS%
 
 @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: msiexec /qb /i "%PUPPET_PATH%" /l*v "%PUPPET_DIR%\puppet.log" %PUPPET_OPTIONS%
 ver>nul

@@ -1,0 +1,122 @@
+#!ipxe
+set boot-url http://10.196.20.12
+
+######## MAIN MENU ###################
+:start
+menu Welcome to iPXE's Boot Menu
+item
+item --gap -- ------------------------- Operating systems ------------------------------
+item wimboot13 Wimboot WinPEv5 (2012R2NEW) OK
+item wimboot12 Wimboot WinPEv5 (2012R2) OK
+item wimboot5 Wimboot WinPEv5 OK
+item wimboot3 Wimboot WinPEv3 OK
+item win7 Win7 ISO OK
+item win2012r2 Win2012R2 ISO OK
+item 7pe_x86_E Boot 7pe_x86 via sanboot OK
+item pmagic Boot pmagic via memdisk OK
+#item bootsan Boot On San OK
+#item bootsan2 Boot On San NOK
+item --gap -- ------------------------------ Utilities ---------------------------------
+item shell Enter iPXE shell
+item reboot Reboot
+item
+item exit Exit (boot local disk)
+choose --default wimboot13 --timeout 30 target && goto ${target}
+########## UTILITY ITEMS ####################
+:shell
+echo Type exit to get the back to the menu
+shell
+set menu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+########## MENU ITEMS #######################
+:7pe_x86_E
+windows logo
+sanboot --no-describe ${boot-url}/images/7pe_x86.iso || goto failed
+goto start
+
+:pmagic
+initrd ${boot-url}/images/pmagic/pmagic_2013_02_28.iso
+chain ${boot-url}/memdisk iso || goto failed
+goto start
+
+:win7
+dhcp net0
+set keep-san 1
+sanboot --no-describe --keep ${boot-url}/iso/WIN_7_PRO_SP1_x64.ISO || goto failed
+
+:win2012r2
+dhcp net0
+set keep-san 1
+sanboot --no-describe --keep ${boot-url}/iso/9600.17050.WINBLUE_REFRESH.140317-1640_X64FRE_SERVER_EVAL_EN-US-IR3_SSS_X64FREE_EN-US_DV9.ISO || goto failed
+
+
+:bootsan
+dhcp net0
+set keep-san 1
+sanboot iscsi:192.168.1.248:tcp:3260:0:iqn.2000-01.com.synology:ds210.name
+boot
+goto start
+
+:wimboot3
+#kernel wimboot
+#initrd BOOTMGR BOOTMGR
+#initrd BOOT/BCD BCD
+#initrd BOOT/BOOT.SDI BOOT.SDI
+#initrd SOURCES/BOOT.WIM BOOT.WIM
+#boot
+#goto start
+set boot-url http://10.196.20.12/winpe3/
+dhcp net0
+chain --replace ${boot-url}boot.ipxe || goto failed
+#chain --replace --autofree ${boot-url}boot.ipxe
+
+:wimboot5
+#kernel wimboot
+#initrd BOOTMGR BOOTMGR
+#initrd BOOT/BCD BCD
+#initrd BOOT/BOOT.SDI BOOT.SDI
+#initrd SOURCES/BOOT.WIM BOOT.WIM
+#boot
+#goto start
+set boot-url http://10.196.20.12/winpe5/
+dhcp net0
+chain --replace ${boot-url}boot.ipxe || goto failed
+#chain --replace --autofree ${boot-url}boot.ipxe
+#
+
+:wimboot12
+#kernel wimboot
+#initrd BOOTMGR BOOTMGR
+#initrd BOOT/BCD BCD
+#initrd BOOT/BOOT.SDI BOOT.SDI
+#initrd SOURCES/BOOT.WIM BOOT.WIM
+#boot
+#goto start
+set boot-url http://10.196.20.12/win2012r2/
+dhcp net0
+chain --replace ${boot-url}boot.ipxe || goto failed
+#chain --replace --autofree ${boot-url}boot.ipxe
+#
+
+
+:wimboot13
+set boot-url http://10.196.20.12/win2012r2/
+dhcp net0
+chain --replace ${boot-url}boot-win2012-netdrv-pt2.ipxe || goto failed
+
+bootsan2:
+dhcp net0
+#ifopen net0
+set keep-san 1
+sanboot aoe:e0.1
+goto start

@@ -1,0 +1,9 @@
+DEFAULT menu.c32
+PROMPT 0
+MENU TITLE PXE Boot
+TIMEOUT 100
+
+LABEL Install Win7
+MENU LABEL Install Win7
+kernel IPXE.KRN
+initrd conf.ipxe
