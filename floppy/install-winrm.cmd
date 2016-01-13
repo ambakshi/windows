@@ -21,7 +21,7 @@ if exist %SystemRoot%\SysWOW64\cmd.exe (
   @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force" <NUL
 )
 
-systeminfo 2>nul | findstr /b /c:"OS Name" | findstr /c:"Windows 7" >nul
+wmic os get Caption | findstr /c:"Windows 7" /c:"Windows 10" >nul
 if errorlevel 1 goto skip_fixnetwork
 
 if not exist a:\fixnetwork.ps1 echo ==^> ERROR: File not found: a:\fixnetwork.ps1
@@ -67,8 +67,8 @@ call winrm set winrm/config/client/auth @{Basic="true"}
 call winrm set winrm/config/listener?Address=*+Transport=HTTP @{Port="5985"}
 @if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: winrm set winrm/config/listener?Address=*+Transport=HTTP @{Port="5985"}
 
-sc config winrm start= auto
-@if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: sc config winrm start= auto
+sc config winrm start= disabled
+@if errorlevel 1 echo ==^> WARNING: Error %ERRORLEVEL% was returned by: sc config winrm start= disabled
 
 :: wait for winrm service to finish starting
 timeout 5

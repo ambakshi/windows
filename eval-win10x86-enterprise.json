@@ -1,18 +1,19 @@
 {
   "builders": [
     {
+      "communicator": "winrm",
       "disk_size": "{{user `disk_size`}}",
       "floppy_files": [
-        "floppy/eval-win10x86-enterprise/Autounattend.xml",
         "floppy/00-run-all-scripts.cmd",
-        "floppy/install-winrm.cmd",
-        "floppy/powerconfig.bat",
         "floppy/01-install-wget.cmd",
         "floppy/_download.cmd",
         "floppy/_packer_config.cmd",
-        "floppy/passwordchange.bat",
         "floppy/disablewinupdate.bat",
-        "floppy/openssh.bat",
+        "floppy/eval-win10x86-enterprise/Autounattend.xml",
+        "floppy/fixnetwork.ps1",
+        "floppy/install-winrm.cmd",
+        "floppy/passwordchange.bat",
+        "floppy/powerconfig.bat",
         "floppy/zz-start-sshd.cmd"
       ],
       "guest_os_type": "windows8",
@@ -21,9 +22,6 @@
       "iso_checksum_type": "sha1",
       "iso_url": "{{ user `iso_url` }}",
       "shutdown_command": "{{ user `shutdown_command`}}",
-      "ssh_password": "vagrant",
-      "ssh_username": "vagrant",
-      "ssh_wait_timeout": "10000s",
       "tools_upload_flavor": "windows",
       "type": "vmware-iso",
       "vm_name": "eval-win10x86-enterprise",
@@ -32,23 +30,27 @@
         "memsize": "1536",
         "numvcpus": "1",
         "scsi0.virtualDev": "lsisas1068"
-      }
+      },
+      "winrm_password": "vagrant",
+      "winrm_timeout": "10000s",
+      "winrm_username": "vagrant"
     },
     {
+      "communicator": "winrm",
       "disk_size": "{{user `disk_size`}}",
       "floppy_files": [
-        "floppy/eval-win10x86-enterprise/Autounattend.xml",
         "floppy/00-run-all-scripts.cmd",
-        "floppy/install-winrm.cmd",
-        "floppy/powerconfig.bat",
         "floppy/01-install-wget.cmd",
         "floppy/_download.cmd",
         "floppy/_packer_config.cmd",
-        "floppy/passwordchange.bat",
         "floppy/disablewinupdate.bat",
-        "floppy/openssh.bat",
-        "floppy/zz-start-sshd.cmd",
-        "floppy/oracle-cert.cer"
+        "floppy/eval-win10x86-enterprise/Autounattend.xml",
+        "floppy/fixnetwork.ps1",
+        "floppy/install-winrm.cmd",
+        "floppy/oracle-cert.cer",
+        "floppy/passwordchange.bat",
+        "floppy/powerconfig.bat",
+        "floppy/zz-start-sshd.cmd"
       ],
       "guest_os_type": "Windows81",
       "hard_drive_interface": "sata",
@@ -57,9 +59,6 @@
       "iso_checksum_type": "sha1",
       "iso_url": "{{ user `iso_url` }}",
       "shutdown_command": "{{ user `shutdown_command`}}",
-      "ssh_password": "vagrant",
-      "ssh_username": "vagrant",
-      "ssh_wait_timeout": "10000s",
       "type": "virtualbox-iso",
       "vboxmanage": [
         [
@@ -81,21 +80,25 @@
           "1"
         ]
       ],
-      "vm_name": "eval-win10x86-enterprise"
+      "vm_name": "eval-win10x86-enterprise",
+      "winrm_password": "vagrant",
+      "winrm_timeout": "10000s",
+      "winrm_username": "vagrant"
     },
     {
+      "communicator": "winrm",
       "disk_size": "{{user `disk_size`}}",
       "floppy_files": [
-        "floppy/eval-win10x86-enterprise/Autounattend.xml",
         "floppy/00-run-all-scripts.cmd",
-        "floppy/install-winrm.cmd",
-        "floppy/powerconfig.bat",
         "floppy/01-install-wget.cmd",
         "floppy/_download.cmd",
         "floppy/_packer_config.cmd",
-        "floppy/passwordchange.bat",
         "floppy/disablewinupdate.bat",
-        "floppy/openssh.bat",
+        "floppy/eval-win10x86-enterprise/Autounattend.xml",
+        "floppy/fixnetwork.ps1",
+        "floppy/install-winrm.cmd",
+        "floppy/passwordchange.bat",
+        "floppy/powerconfig.bat",
         "floppy/zz-start-sshd.cmd"
       ],
       "guest_os_type": "win-8.1",
@@ -119,11 +122,11 @@
         ]
       ],
       "shutdown_command": "{{ user `shutdown_command`}}",
-      "ssh_password": "vagrant",
-      "ssh_username": "vagrant",
-      "ssh_wait_timeout": "10000s",
       "type": "parallels-iso",
-      "vm_name": "eval-win10x86-enterprise"
+      "vm_name": "eval-win10x86-enterprise",
+      "winrm_password": "vagrant",
+      "winrm_timeout": "10000s",
+      "winrm_username": "vagrant"
     }
   ],
   "post-processors": [
@@ -142,8 +145,6 @@
         "CM_VERSION={{user `cm_version`}}",
         "UPDATE={{user `update`}}"
       ],
-      "execute_command": "{{.Vars}} cmd /c C:/Windows/Temp/script.bat",
-      "remote_path": "/tmp/script.bat",
       "scripts": [
         "script/vagrant.bat",
         "script/cmtool.bat",
@@ -153,13 +154,7 @@
         "script/uninstall-7zip.bat",
         "script/sdelete.bat"
       ],
-      "type": "shell"
-    },
-    {
-      "inline": [
-        "rm -f /tmp/script.bat"
-      ],
-      "type": "shell"
+      "type": "windows-shell"
     }
   ],
   "variables": {
@@ -167,11 +162,10 @@
     "cm_version": "",
     "disk_size": "40960",
     "headless": "false",
-    "iso_checksum": "F81829857011DF86FADCE0CC4F8E379DDA50A208",
-    "iso_url": "http://iso.esd.microsoft.com/W10IP/07973073D3117B492DAA3497B1BE5F96/Windows10_InsiderPreview_x32_EN-US_10130.iso",
-    "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c 'Packer Shutdown'",
+    "iso_checksum": "875b450d67e7176b8b3c72a80c60a0628bf1afac",
+    "iso_url": "http://care.dlservice.microsoft.com/dl/download/C/3/9/C399EEA8-135D-4207-92C9-6AAB3259F6EF/10240.16384.150709-1700.TH1_CLIENTENTERPRISEEVAL_OEMRET_X86FRE_EN-US.ISO",
+    "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
     "update": "true",
     "version": "0.1.0"
   }
 }
-

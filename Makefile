@@ -19,10 +19,10 @@ EVAL_WIN81_X86_CHECKSUM ?= e2c60b093b11b99c8f021c518249f4c42093efe2
 EVAL_WIN8_X64 ?= http://download.microsoft.com/download/5/3/C/53C31ED0-886C-4F81-9A38-F58CE4CE71E8/9200.16384.WIN8_RTM.120725-1247_X64FRE_ENTERPRISE_EVAL_EN-US-HRM_CENA_X64FREE_EN-US_DV5.ISO
 EVAL_WIN8_X64_CHECKSUM ?= ae59e04462e4dc74e971d6e98d0cc1f2f3d63f1d
 
-EVAL_WIN10_X64     ?= http://iso.esd.microsoft.com/W10IP/07973073D3117B492DAA3497B1BE5F96/Windows10_InsiderPreview_x64_EN-US_10130.iso
-EVAL_WIN10_X64_CHECKSUM ?= 5ef5a65b474d63bc3df46cc84d47064b142aa800
-EVAL_WIN10_X86     ?= http://iso.esd.microsoft.com/W10IP/07973073D3117B492DAA3497B1BE5F96/Windows10_InsiderPreview_x32_EN-US_10130.iso
-EVAL_WIN10_X86_CHECKSUM ?= f81829857011df86fadce0cc4f8e379dda50a208
+EVAL_WIN10_X64 ?= http://care.dlservice.microsoft.com/dl/download/C/3/9/C399EEA8-135D-4207-92C9-6AAB3259F6EF/10240.16384.150709-1700.TH1_CLIENTENTERPRISEEVAL_OEMRET_X64FRE_EN-US.ISO
+EVAL_WIN10_X64_CHECKSUM ?= 56ab095075be28a90bc0b510835280975c6bb2ce
+EVAL_WIN10_X86 ?= http://care.dlservice.microsoft.com/dl/download/C/3/9/C399EEA8-135D-4207-92C9-6AAB3259F6EF/10240.16384.150709-1700.TH1_CLIENTENTERPRISEEVAL_OEMRET_X86FRE_EN-US.ISO
+EVAL_WIN10_X86_CHECKSUM ?= 875b450d67e7176b8b3c72a80c60a0628bf1afac
 
 # @todo:
 EVAL_WIN2012_X64 ?= http://download.microsoft.com/download/6/D/A/6DAB58BA-F939-451D-9101-7DE07DC09C03/9200.16384.WIN8_RTM.120725-1247_X64FRE_SERVER_EVAL_EN-US-HRM_SSS_X64FREE_EN-US_DV5.ISO
@@ -76,7 +76,7 @@ ifndef SHUTDOWN_COMMAND
 ifeq ($(GENERALIZE),true)
 	SHUTDOWN_COMMAND ?= C:/Windows/System32/Sysprep/sysprep.exe /generalize /shutdown /oobe /unattend:A:/Autounattend.xml
 else
-	SHUTDOWN_COMMAND ?= shutdown /s /t 10 /f /d p:4:1 /c 'Packer Shutdown'
+	SHUTDOWN_COMMAND ?= shutdown /s /t 10 /f /d p:4:1 /c Packer_Shutdown
 endif
 endif
 ifeq ($(CM),nocm)
@@ -91,7 +91,7 @@ ifdef CM_VERSION
 endif
 PACKER ?= packer
 ifdef PACKER_DEBUG
-	PACKER := PACKER_LOG=1 $(PACKER) --debug
+	PACKER := PACKER_LOG=1 $(PACKER)
 else
 endif
 BUILDER_TYPES ?= vmware virtualbox parallels
@@ -142,9 +142,13 @@ $(1): $(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX) $(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX
 
 $(1)-cygwin: $(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX) $(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX) $(PARALLELS_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+$(1)-ssh: $(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX) $(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX) $(PARALLELS_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 test-$(1): test-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX) test-$(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX) test-$(PARALLELS_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 test-$(1)-cygwin: test-$(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX) test-$(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX) test-$(PARALLELS_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
+
+test-$(1)-ssh: test-$(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX) test-$(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX) test-$(PARALLELS_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
 
 s3cp-$(1): s3cp-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX) s3cp-$(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX) s3cp-$(PARALLELS_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
@@ -154,9 +158,13 @@ $(1): $(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX) $(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX
 
 $(1)-cygwin: $(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX) $(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+$(1)-ssh: $(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX) $(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 test-$(1): test-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX) test-$(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 test-$(1)-cygwin: test-$(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX) test-$(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
+
+test-$(1)-ssh: test-$(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX) test-$(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
 
 s3cp-$(1): s3cp-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX) s3cp-$(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
@@ -166,37 +174,55 @@ vmware/$(1): $(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 vmware/$(1)-cygwin: $(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+vmware/$(1)-ssh: $(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 virtualbox/$(1): $(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 virtualbox/$(1)-cygwin: $(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
+
+virtualbox/$(1)-ssh: $(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
 
 parallels/$(1): $(PARALLELS_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 parallels/$(1)-cygwin: $(PARALLELS_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+parallels/$(1)-ssh: $(PARALLELS_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 test-vmware/$(1): test-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 test-vmware/$(1)-cygwin: test-$(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
+
+test-vmware/$(1)-ssh: test-$(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
 
 test-virtualbox/$(1): test-$(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 test-virtualbox/$(1)-cygwin: test-$(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+test-virtualbox/$(1)-ssh: test-$(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 test-parallels/$(1): test-$(PARALLELS_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 test-parallels/$(1)-cygwin: test-$(PARALLELS_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
+
+test-parallels/$(1)-ssh: test-$(PARALLELS_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
 
 ssh-vmware/$(1): ssh-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 ssh-vmware/$(1)-cygwin: ssh-$(VMWARE_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+ssh-vmware/$(1)-ssh: ssh-$(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 ssh-virtualbox/$(1): ssh-$(VIRTUALBOX_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 ssh-virtualbox/$(1)-cygwin: ssh-$(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
 
+ssh-virtualbox/$(1)-ssh: ssh-$(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
+
 ssh-parallels/$(1): ssh-$(PARALLELS_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
 ssh-parallels/$(1)-cygwin: ssh-$(PARALLELS_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX)
+
+ssh-parallels/$(1)-ssh: ssh-$(PARALLELS_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX)
 
 s3cp-vmware/$(1): s3cp-$(VMWARE_BOX_DIR)/$(1)$(BOX_SUFFIX)
 
@@ -210,81 +236,119 @@ $(foreach i,$(SHORTCUT_TARGETS),$(eval $(call SHORTCUT,$(i))))
 
 ###############################################################################
 
-win7: win7-openssh win7-cygwin
+win7: win7-winrm win7-openssh win7-cygwin
 
-win7-openssh: win7x64-enterprise win7x64-pro win7x86-enterprise win7x86-pro
+win7-winrm: win7x64-enterprise win7x64-pro win7x86-enterprise win7x86-pro
+
+win7-openssh: win7x64-enterprise-ssh win7x64-pro-ssh win7x86-enterprise-ssh win7x86-pro-ssh
 
 win7-cygwin: win7x64-enterprise-cygwin win7x64-pro-cygwin win7x86-enterprise-cygwin win7x86-pro-cygwin
 
-test-win7: test-win7-openssh test-win7-cygwin
 
-test-win7-openssh: test-win7x64-enterprise test-win7x64-pro test-win7x86-enterprise test-win7x86-pro
+test-win7: test-win7-winrm test-win7-openssh test-win7-cygwin
+
+test-win7-winrm: test-win7x64-enterprise test-win7x64-pro test-win7x86-enterprise test-win7x86-pro
+
+test-win7-openssh: test-win7x64-enterprise-ssh test-win7x64-pro-ssh test-win7x86-enterprise-ssh test-win7x86-pro-ssh
 
 test-win7-cygwin: test-win7x64-enterprise-cygwin test-win7x64-pro-cygwin test-win7x86-enterprise-cygwin test-win7x86-pro-cygwin
 
-win8: win8-openssh win8-cygwin
 
-win8-openssh: win8x64-enterprise win8x64-pro win8x86-enterprise win8x86-pro
+win8: win8-winrm win8-openssh win8-cygwin
+
+win8-winrm: win8x64-enterprise win8x64-pro win8x86-enterprise win8x86-pro
+
+win8-openssh: win8x64-enterprise-ssh win8x64-pro-ssh win8x86-enterprise-ssh win8x86-pro-ssh
 
 win8-cygwin: win8x64-enterprise-cygwin win8x64-pro-cygwin win8x86-enterprise-cygwin win8x86-pro-cygwin
 
-test-win8: test-win8-openssh test-win8-cygwin
 
-test-win8-openssh: test-win8x64-enterprise test-win8x64-pro test-win8x86-enterprise test-win8x86-pro
+test-win8: test-win8-winrm test-win8-openssh test-win8-cygwin
+
+test-win8-winrm: test-win8x64-enterprise test-win8x64-pro test-win8x86-enterprise test-win8x86-pro
+
+test-win8-openssh: test-win8x64-enterprise-ssh test-win8x64-pro-ssh test-win8x86-enterprise-ssh test-win8x86-pro-ssh
 
 test-win8-cygwin: test-win8x64-enterprise-cygwin test-win8x64-pro-cygwin test-win8x86-enterprise-cygwin test-win8x86-pro-cygwin
 
-win81: win81-openssh win81-cygwin
 
-win81-openssh: win81x64-enterprise win81x64-pro win81x86-enterprise win81x86-pro
+win81: win81-winrm win81-openssh win81-cygwin
+
+win81-winrm: win81x64-enterprise win81x64-pro win81x86-enterprise win81x86-pro
+
+win81-openssh: win81x64-enterprise-ssh win81x64-pro-ssh win81x86-enterprise-ssh win81x86-pro-ssh
 
 win81-cygwin: win81x64-enterprise-cygwin win81x64-pro-cygwin win81x86-enterprise-cygwin win81x86-pro-cygwin
 
-test-win81: test-win81-openssh test-win81-cygwin
 
-test-win81-openssh: test-win81x64-enterprise test-win81x64-pro test-win81x86-enterprise test-win81x86-pro
+test-win81: test-win81-winrm test-win81-openssh test-win81-cygwin
+
+test-win81-winrm: test-win81x64-enterprise test-win81x64-pro test-win81x86-enterprise test-win81x86-pro
+
+test-win81-openssh: test-win81x64-enterprise-ssh test-win81x64-pro-ssh test-win81x86-enterprise-ssh test-win81x86-pro-ssh
 
 test-win81-cygwin: test-win81x64-enterprise-cygwin test-win81x64-pro-cygwin test-win81x86-enterprise-cygwin test-win81x86-pro-cygwin
 
-win2008r2: win2008r2-openssh win2008r2-cygwin
 
-win2008r2-openssh: win2008r2-datacenter win2008r2-enterprise win2008r2-standard win2008r2-web
+win2008r2: win2008r2-winrm win2008r2-openssh win2008r2-cygwin
+
+win2008r2-winrm: win2008r2-datacenter win2008r2-enterprise win2008r2-standard win2008r2-web
+
+win2008r2-openssh: win2008r2-datacenter-ssh win2008r2-enterprise-ssh win2008r2-standard-ssh win2008r2-web-ssh
 
 win2008r2-cygwin: win2008r2-datacenter-cygwin win2008r2-enterprise-cygwin win2008r2-standard-cygwin win2008r2-web-cygwin
 
-test-win2008r2: test-win2008r2-openssh test-win2008r2-cygwin
 
-test-win2008r2-openssh: test-win2008r2-datacenter test-win2008r2-enterprise test-win2008r2-standard test-win2008r2-web
+test-win2008r2: test-win2008r2-winrm test-win2008r2-openssh test-win2008r2-cygwin
+
+test-win2008r2-winrm: test-win2008r2-datacenter test-win2008r2-enterprise test-win2008r2-standard test-win2008r2-web
+
+test-win2008r2-openssh: test-win2008r2-datacenter-ssh test-win2008r2-enterprise-ssh test-win2008r2-standard-ssh test-win2008r2-web-ssh
 
 test-win2008r2-cygwin: test-win2008r2-datacenter-cygwin test-win2008r2-enterprise-cygwin test-win2008r2-standard-cygwin test-win2008r2-web-cygwin
 
-win2012: win2012-openssh win2012-cygwin
 
-win2012-openssh: win2012-datacenter win2012-standard
+win2012: win2012-winrm win2012-openssh win2012-cygwin
+
+win2012-winrm: win2012-datacenter win2012-standard
+
+win2012-openssh: win2012-datacenter-ssh win2012-standard-ssh
 
 win2012-cygwin: win2012-datacenter-cygwin win2012-standard-cygwin
 
-test-win2012: test-win2012-openssh test-win2012-cygwin
 
-test-win2012-openssh: test-win2012-datacenter test-win2012-standard
+test-win2012: test-win2012-winrm test-win2012-openssh test-win2012-cygwin
+
+test-win2012-winrm: test-win2012-datacenter test-win2012-standard
+
+test-win2012-openssh: test-win2012-datacenter-ssh test-win2012-standard-ssh
 
 test-win2012-cygwin: test-win2012-datacenter-cygwin test-win2012-standard-cygwin
 
-win2012r2: win2012r2-openssh win2012r2-cygwin
 
-win2012r2-openssh: win2012r2-datacenter win2012r2-standard
+win2012r2: win2012r2-winrm win2012r2-openssh win2012r2-cygwin
+
+win2012r2-winrm: win2012r2-datacenter win2012r2-standard
+
+win2012r2-openssh: win2012r2-datacenter-ssh win2012r2-standard-ssh
 
 win2012r2-cygwin: win2012r2-datacenter-cygwin win2012r2-standard-cygwin
 
-test-win2012r2: test-win2012r2-openssh test-win2012r2-cygwin
 
-test-win2012r2-openssh: test-win2012r2-datacenter test-win2012r2-standard
+test-win2012r2: test-win2012r2-winrm test-win2012r2-openssh test-win2012r2-cygwin
+
+test-win2012r2-winrm: test-win2012r2-datacenter test-win2012r2-standard
+
+test-win2012r2-openssh: test-win2012r2-datacenter-ssh test-win2012r2-standard-ssh
 
 test-win2012r2-cygwin: test-win2012r2-datacenter-cygwin test-win2012r2-standard-cygwin
 
-eval: eval-openssh
 
-eval-openssh: eval-win2012r2-datacenter eval-win2008r2-datacenter eval-win81x64-enterprise eval-win7x64-enterprise eval-win10x64-enterprise
+eval: eval-winrm eval-openssh
+
+eval-winrm: eval-win2012r2-datacenter eval-win2008r2-datacenter eval-win81x64-enterprise eval-win7x64-enterprise eval-win10x64-enterprise
+
+eval-openssh: eval-win2012r2-datacenter-ssh eval-win2008r2-datacenter-ssh eval-win81x64-enterprise-ssh eval-win7x64-enterprise-ssh eval-win10x64-enterprise-ssh
 
 test-eval-openssh: test-eval-win2012r2-datacenter test-eval-win2008r2-datacenter test-eval-win81x64-enterprise test-eval-win7x64-enterprise test-eval-win10x64-enterprise
 
@@ -304,6 +368,21 @@ $(PARALLELS_BOX_DIR)/$(1)$(BOX_SUFFIX): $(1).json
 	rm -rf $(PARALLELS_OUTPUT)
 	mkdir -p $(PARALLELS_BOX_DIR)
 	$(PACKER) build -only=$(PARALLELS_BUILDER) $(PACKER_VARS) -var "iso_url=$(2)" -var "iso_checksum=$(3)" $(1).json
+
+$(VIRTUALBOX_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX): $(1)-ssh.json
+	rm -rf $(VIRTUALBOX_OUTPUT)
+	mkdir -p $(VIRTUALBOX_BOX_DIR)
+	$(PACKER) build -only=$(VIRTUALBOX_BUILDER) $(PACKER_VARS) -var "iso_url=$(2)" -var "iso_checksum=$(3)" $(1)-ssh.json
+
+$(VMWARE_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX): $(1)-ssh.json
+	rm -rf $(VMWARE_OUTPUT)
+	mkdir -p $(VMWARE_BOX_DIR)
+	$(PACKER) build -only=$(VMWARE_BUILDER) $(PACKER_VARS) -var "iso_url=$(2)" -var "iso_checksum=$(3)" $(1)-ssh.json
+
+$(PARALLELS_BOX_DIR)/$(1)-ssh$(BOX_SUFFIX): $(1)-ssh.json
+	rm -rf $(PARALLELS_OUTPUT)
+	mkdir -p $(PARALLELS_BOX_DIR)
+	$(PACKER) build -only=$(PARALLELS_BUILDER) $(PACKER_VARS) -var "iso_url=$(2)" -var "iso_checksum=$(3)" $(1)-ssh.json
 
 $(VIRTUALBOX_BOX_DIR)/$(1)-cygwin$(BOX_SUFFIX): $(1)-cygwin.json
 	rm -rf $(VIRTUALBOX_OUTPUT)

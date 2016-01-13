@@ -147,6 +147,8 @@
         "CM_VERSION={{user `cm_version`}}",
         "UPDATE={{user `update`}}"
       ],
+      "execute_command": "{{.Vars}} cmd /c C:/Windows/Temp/script.bat",
+      "remote_path": "C:/Windows/Temp/script.bat",
       "scripts": [
         "script/vagrant.bat",
         "script/cmtool.bat",
